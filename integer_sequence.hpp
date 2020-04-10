@@ -64,14 +64,14 @@ INTEGER_SEQUENCE_NAMESPACE_OPEN_BRACE
 template<class T, T... Integers>
 struct integer_sequence
 {
-  typedef T value_type;
+  using value_type = T;
   static_assert(std::is_integral<T>::value, "integer_sequence can only be instantiated with an integral type" );
-  static constexpr size_t size() noexcept { return sizeof...(Integers); }
+  static constexpr std::size_t size() noexcept { return sizeof...(Integers); }
 };
 
 
-template<size_t... Indices>
-using index_sequence = integer_sequence<size_t, Indices...>;
+template<std::size_t... Indices>
+using index_sequence = integer_sequence<std::size_t, Indices...>;
 
 
 namespace INTEGER_SEQUENCE_DETAIL_NAMESPACE
@@ -98,18 +98,22 @@ struct make_integer_sequence_unchecked<T, end, end, integer_sequence<T, Indices.
 };
 
 
+template<class T, T N>
+struct make_integer_sequence_impl
+{
+  static_assert(std::is_integral<T>::value, "make_integer_sequence can only be instantiated with an integral type" );
+  static_assert(0 <= N, "make_integer_sequence input shall not be negative");
+  using type = typename make_integer_sequence_unchecked<
+    T, 0, N, integer_sequence<T>
+  >::type;
+};
+
+
 } // end INTEGER_SEQUENCE_DETAIL_NAMESPACE
 
 
 template<class T, T N>
-struct make_integer_sequence
-{
-  static_assert(std::is_integral<T>::value, "make_integer_sequence can only be instantiated with an integral type" );
-  static_assert(0 <= N, "make_integer_sequence input shall not be negative");
-  using type = typename INTEGER_SEQUENCE_DETAIL_NAMESPACE::make_integer_sequence_unchecked<
-    T, 0, N, integer_sequence<T>
-  >::type;
-};
+using make_integer_sequence = typename INTEGER_SEQUENCE_DETAIL_NAMESPACE::make_integer_sequence_impl<T,N>::type;
 
 
 template<std::size_t N>
